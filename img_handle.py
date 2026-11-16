@@ -16,10 +16,20 @@ def main() -> None:
 def resize_img(cur_path, new_path, size) -> int:
     i = 0
     for item in cur_path.iterdir():
+        # validate file
         if not item.is_file():
-            print(f"file not found: {item}")
+            print(f"Skipped {item.name}, not a file",)
             continue
 
+        # validate image
+        try: 
+            with Image.open(item) as img:
+                img.verify()
+        except (OSError, ValueError):
+            print(f"Skipped {item.name} - non image")
+            continue
+
+        # valid image
         with Image.open(item) as img:
             i += 1
             resized_img = img.resize((size, size), resample=(Image.Resampling.LANCZOS))
