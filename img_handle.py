@@ -26,7 +26,7 @@ def resize_img(cur_path, new_path, size) -> int:
             with Image.open(item) as img:
                 img.verify()
         except (OSError, ValueError):
-            print(f"Skipped {item.name} - non image")
+            print(f"Skipped {item.name}, non image")
             continue
 
         # valid image
