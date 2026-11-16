@@ -2,14 +2,13 @@ import kagglehub
 from PIL import Image
 from pathlib import Path
 
-def main() -> None:
-    img_size = 64
+img_size = 64
 
+def main() -> None:
     #prepare all path
-    print("Handling path creation", end='\r')
     path_np, image_path_np, path_p, image_path_p = create_paths()
 
-    # size of img, keep to power of 2
+    # save resized img to new path
     resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size)
     
 
@@ -24,7 +23,7 @@ def resize_img(cur_path, new_path, size) -> int:
         with Image.open(item) as img:
             i += 1
             resized_img = img.resize((size, size), resample=(Image.Resampling.LANCZOS))
-            resized_img.save(new_path / f"{i}.png")
+            resized_img.save(new_path / f"{i:03d}.png")
 
     return i
 
@@ -35,7 +34,9 @@ def resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size) -> 
     print("Handling pizza files", end='\r')
     print(f"Total pizza files: {resize_img(path_p, image_path_p, img_size)}")
 
+# download kaggle dataset, and create path
 def create_paths() -> tuple[Path, Path, Path, Path]:
+    print("Handling path creation", end='\r')
     path = kagglehub.dataset_download("carlosrunner/pizza-not-pizza") + '\\pizza_not_pizza\\'
     path_np = Path(path + 'not_pizza')
     path_p = Path(path + 'pizza')
@@ -47,7 +48,7 @@ def create_paths() -> tuple[Path, Path, Path, Path]:
     image_path_p.mkdir(exist_ok=True)
 
     print("Path to dataset files:", path)
-    return path_np, image_path_np, path_p, image_path_np
+    return path_np, image_path_np, path_p, image_path_p
 
 if __name__ == "__main__":
     main()
