@@ -5,9 +5,8 @@ from pathlib import Path
 img_size = 64
 
 def main() -> None:
-    #prepare all path
-    path_np, image_path_np, path_p, image_path_p = create_paths()
-
+    dataset = kagglehub.dataset_download("carlosrunner/pizza-not-pizza") + '\\pizza_not_pizza\\'
+    path_np, image_path_np, path_p, image_path_p = create_paths(dataset)
     # save resized img to new path
     resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size)
     
@@ -16,17 +15,7 @@ def main() -> None:
 def resize_img(cur_path, new_path, size) -> int:
     i = 0
     for item in cur_path.iterdir():
-        # validate file
-        if not item.is_file():
-            print(f"Skipped {item.name}, not a file",)
-            continue
-
-        # validate image
-        try: 
-            with Image.open(item) as img:
-                img.verify()
-        except (OSError, ValueError):
-            print(f"Skipped {item.name}, non image")
+        if not valid_file(item) or not valid_image(item):
             continue
 
         # valid image
@@ -37,17 +26,17 @@ def resize_img(cur_path, new_path, size) -> int:
 
     return i
 
-# just handle the printing
+# just handles the printing
 def resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size) -> None:
     print("Handling non pizza files", end='\r')
     print(f"Total non pizza files: {resize_img(path_np, image_path_np, img_size)}")
     print("Handling pizza files", end='\r')
     print(f"Total pizza files: {resize_img(path_p, image_path_p, img_size)}")
 
-# download kaggle dataset, and create path
-def create_paths() -> tuple[Path, Path, Path, Path]:
+# create path variables
+def create_paths(path) -> tuple[Path, Path, Path, Path]:
     print("Handling path creation", end='\r')
-    path = kagglehub.dataset_download("carlosrunner/pizza-not-pizza") + '\\pizza_not_pizza\\'
+
     path_np = Path(path + 'not_pizza')
     path_p = Path(path + 'pizza')
 
@@ -57,8 +46,26 @@ def create_paths() -> tuple[Path, Path, Path, Path]:
     image_path_p = Path("pizza_resized")
     image_path_p.mkdir(exist_ok=True)
 
-    print("Path to dataset files:", path)
+    print("Path to original dataset files:", path)
     return path_np, image_path_np, path_p, image_path_p
+
+# validate file
+def valid_file(item) -> bool:
+    if not item.is_file():
+        print(f"Skipped {item.name}, not a file",)
+        return False
+    return True
+
+# validate image
+def valid_image(item) -> bool:
+    try: 
+        with Image.open(item) as img:
+            img.verify()
+    except (OSError, ValueError):
+        print(f"Skipped {item.name}, non image")
+        return False
+    
+    return True
 
 if __name__ == "__main__":
     main()
