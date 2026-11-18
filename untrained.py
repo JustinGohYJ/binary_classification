@@ -22,7 +22,9 @@ def main() -> None:
     not_pizza_path, pizza_path = dataset_path.main(image_size)
 
 
+# validate ranged user input for int/float
 def validate_user_num(type, min, max, message):
+    print("")
     while True:
         try:
             val = type(input(f"{message} [{min} - {max}]: "))
@@ -37,11 +39,13 @@ def validate_user_num(type, min, max, message):
         return val
             
 
+# handles datasplit input
 def validate_user_datasplit() -> list[int]:
     print("Input a suitable percentage split for the data [Must sum to 100]")
     print("Training, Validation, Test")
 
     while True:
+        # Force at least 1% in each category
         total = 100
         training = validate_user_num(int, 1, total - 2, "Training: ")
         total -= training
