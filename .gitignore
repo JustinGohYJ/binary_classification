@@ -1,2 +1,4 @@
 not_pizza_resized/
 pizza_resized/
+.vscode/
+__pycache__/
