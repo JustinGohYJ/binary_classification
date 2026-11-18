@@ -2,6 +2,13 @@
 
 A binary-classification neural network using a multilayer perceptron (MLP) to classify an image as pizza or not pizza.
 
+## Image input and network architecture
+
+A convolutional neural network (CNN) is the more suitable architecture for image data. This project uses a multilayer perceptron (MLP) because it is easier to implement, but using an MLP with the original image size would be impractical.
+
+To make the input size manageable, each image is resized to $64 \\times 64$ pixels. The red, green, and blue values for every pixel are provided to the input layer, giving it $64 \\times 64 \\times 3 = 12{,}288$ input values. The network has two hidden layers, and the estimated training time is around one hour.
+
+
 ## Forward propagation
 
 For the first layer, the input image is transformed by the weights and bias, then passed through the activation function:
