@@ -2,14 +2,13 @@ import kagglehub
 from PIL import Image
 from pathlib import Path
 
-img_size = 64
-
-def main() -> None:
+def main(img_size) -> tuple[Path, Path]:
     dataset = kagglehub.dataset_download("carlosrunner/pizza-not-pizza") + '\\pizza_not_pizza\\'
     path_np, image_path_np, path_p, image_path_p = create_paths(dataset)
     # save resized img to new path
     resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size)
     
+    return image_path_np, image_path_p
 
 # resize all image from cur_path and saved it to new_path
 def resize_img(cur_path, new_path, size) -> int:
@@ -66,6 +65,3 @@ def valid_image(item) -> bool:
         return False
     
     return True
-
-if __name__ == "__main__":
-    main()
