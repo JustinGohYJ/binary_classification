@@ -26,14 +26,16 @@ def validate_user_num(type, min, max, message):
     while True:
         try:
             val = type(input(f"{message} [{min} - {max}]: "))
-
-            if min <= val <= max:
-                return val
-
-            print(f"Input must be between {min} and {max}")
         except ValueError:
             print(f"Invalid input, expected {type.__name__}")
+            continue
 
+        if not min <= val <= max:
+            print(f"Input must be between {min} and {max}")
+            continue
+
+        return val
+            
 
 def validate_user_datasplit() -> list[int]:
     print("Input a suitable percentage split for the data [Must sum to 100]")
