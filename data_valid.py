@@ -1,4 +1,5 @@
 import kagglehub
+import colour
 from PIL import Image
 from pathlib import Path
 
@@ -30,10 +31,10 @@ def create_paths(path) -> tuple[Path, Path, Path, Path]:
 
 # just handles the printing
 def resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size) -> None:
-    print("Handling non pizza files", end='\r')
-    print(f"Total non pizza files: {resize_img(path_np, image_path_np, img_size)}")
-    print("Handling pizza files", end='\r')
-    print(f"Total pizza files: {resize_img(path_p, image_path_p, img_size)}")
+    print("Handling non pizza files", end='\r', flush=True)
+    print(f"{colour.BLUE}Total non pizza files: {resize_img(path_np, image_path_np, img_size)}{colour.RESET}")
+    print("Handling pizza files", end='\r', flush=True)
+    print(f"{colour.BLUE}Total pizza files: {resize_img(path_p, image_path_p, img_size)}{colour.RESET}")
 
 
 # resize all image from cur_path and saved it to new_path

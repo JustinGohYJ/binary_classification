@@ -1,4 +1,5 @@
 import data_valid
+import colour
 import sys
 from pathlib import Path
 
@@ -29,11 +30,11 @@ def validate_user_num(type, min, max, message):
         try:
             val = type(input(f"{message} [{min} - {max}]: "))
         except ValueError:
-            print(f"Invalid input, expected {type.__name__}")
+            print(f"{colour.RED}Invalid input, expected {colour.YELLOW}{type.__name__}{colour.RESET}")
             continue
 
         if not min <= val <= max:
-            print(f"Input must be between {min} and {max}")
+            print(f"{colour.RED}Input must be between {colour.YELLOW}{min} and {max}{colour.RESET}")
             continue
 
         return val
@@ -42,7 +43,7 @@ def validate_user_num(type, min, max, message):
 # handles datasplit input
 def validate_user_datasplit() -> list[int]:
     print("Input a suitable percentage split for the data [Must sum to 100]")
-    print("Training, Validation, Test")
+    print(f"{colour.PURPLE}Training, Validation, Test{colour.RESET}")
 
     while True:
         # Force at least 1% in each category
@@ -52,19 +53,23 @@ def validate_user_datasplit() -> list[int]:
         validation = validate_user_num(int, 1, total - 1, "Validation: ")
         test = total - validation
 
-        confirm = input("\nConfirm data split (y/n): \n"
+        confirm = input(f"\nConfirm data split {colour.YELLOW}(y/n){colour.RESET}: \n"
                           f"Training: {training}\n"
                           f"Validation: {validation}\n"
-                          f"Test: {test}\n")
+                          f"Test: {test}\n"
+                          f"{colour.YELLOW}Answer: {colour.RESET}")
 
+        # defaults no
         if confirm.lower() == 'y':
             return [training, validation, test]
 
 
 def valid_argv(argv) -> int:
+
+    # missing / extra argv
     if len(argv) != 2:
-        print("Wrong Usage!")
-        print("Usage: python untrained.py <path to image(s)>")
+        print(f"{colour.RED}Wrong Usage!{colour.RESET}")
+        print(f"Usage: python untrained.py {colour.YELLOW}<path to image(s)>{colour.RESET}")
         return -1
 
     user_path = Path(argv[1])
@@ -72,14 +77,14 @@ def valid_argv(argv) -> int:
     # checks valid dir or path
     if not data_valid.valid_file(user_path):
         if not user_path.is_dir():
-            print("Ensure <path> is a valid file or directory in the parent directory")
+            print(f"{colour.RED}Ensure <path> is a valid file or directory in the parent directory{colour.RESET}")
             return -1
 
         # valid folder
         return 1
 
     if not data_valid.valid_image(user_path):
-        print("Ensure <file> is a valid image")
+        print(f"{colour.RED}Ensure <file> is a valid image{colour.RESET}")
         return -1
 
     # valid image
