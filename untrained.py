@@ -1,11 +1,11 @@
-import dataset_path
+import data_valid
 import sys
 from pathlib import Path
 
 def main() -> None:
     '''
-    0: image
-    1: folder
+    0: img
+    1: dir
     -1: invalid
     '''
     user_type = valid_argv(sys.argv)
@@ -19,7 +19,7 @@ def main() -> None:
     learning_rate = validate_user_num(float, 0.0001, 0.01, "Choose the learning rate")
     data_split = validate_user_datasplit()
 
-    not_pizza_path, pizza_path = dataset_path.main(image_size)
+    not_pizza_path, pizza_path = data_valid.main(image_size)
 
 
 # validate ranged user input for int/float
@@ -70,7 +70,7 @@ def valid_argv(argv) -> int:
     user_path = Path(argv[1])
 
     # checks valid dir or path
-    if not dataset_path.valid_file(user_path):
+    if not data_valid.valid_file(user_path):
         if not user_path.is_dir():
             print("Ensure <path> is a valid file or directory in the parent directory")
             return -1
@@ -78,7 +78,7 @@ def valid_argv(argv) -> int:
         # valid folder
         return 1
 
-    if not dataset_path.valid_image(user_path):
+    if not data_valid.valid_image(user_path):
         print("Ensure <file> is a valid image")
         return -1
 
