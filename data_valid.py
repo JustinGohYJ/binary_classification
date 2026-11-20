@@ -4,8 +4,9 @@ from PIL import Image
 from pathlib import Path
 
 def main(img_size) -> tuple[Path, Path]:
-    dataset = kagglehub.dataset_download("carlosrunner/pizza-not-pizza") + '\\pizza_not_pizza\\'
-    path_np, image_path_np, path_p, image_path_p = create_paths(dataset)
+    training_dataset = Path(kagglehub.dataset_download("carlosrunner/pizza-not-pizza"))
+    training_dataset = training_dataset / "pizza_not_pizza"
+    path_np, image_path_np, path_p, image_path_p = create_paths(training_dataset)
     # save resized img to new path
     resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size)
     
