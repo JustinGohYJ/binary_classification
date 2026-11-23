@@ -5,11 +5,18 @@ from PIL import Image
 
 EULER = 2.718281828459045
 
-# some safety mechanism
+# for sigmoid
 def xavier_init(fan_in, fan_out) -> float:
     val = 6 / (fan_in + fan_out)
     val = math.sqrt(val)
     return val
+
+
+# for relu
+# def he_init(fan_in) -> float:
+#     val = 2 / fan_in
+#     val = math.sqrt(val)
+#     return val
 
 
 def sigmoid(val) -> np.array:
@@ -18,9 +25,17 @@ def sigmoid(val) -> np.array:
     return fx
 
 
-def delta_sigmoid(val):
+def delta_sigmoid(val) -> np.array:
     #element wise multiplication
     return val * (1 - val)
+
+
+# def relu(val) -> np.array:
+#     return np.maximum(0, val)
+
+
+# def delta_relu(val) -> np.array:
+#     return val > 0
 
 
 # Return 1d matrix of pixels of size (size x size x 3)
@@ -142,19 +157,3 @@ def update_param(dw, db, w, b, learning_rate):
         b[i] -= learning_rate * db[i]
 
     return w, b
-
-
-X = img_input("pizza_resized/001.png")
-W, B = init_network(12288, 4096, 256, 128, 1)
-label = True
-
-Z, A = forward_propagation(X, W, B)
-loss = obtain_loss(label, A[-1])
-print(loss)
-
-dW, dB = back_propagation(X, W, B, Z, A, label)
-W, B = update_param(dW, dB, W, B, 0.003)
-
-Z, A = forward_propagation(X, W, B)
-loss = obtain_loss(label, A[-1])
-print(loss)

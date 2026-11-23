@@ -1,6 +1,9 @@
 import data_valid
 import colour
 import sys
+import mlp
+import graph
+import numpy as np
 from pathlib import Path
 
 def main() -> None:
@@ -17,11 +20,33 @@ def main() -> None:
     image_size = 64
 
     # epoch = validate_user_num(int, 1, 9999, "Enter a suitable epochs")
-    learning_rate = validate_user_num(float, 0.0001, 0.01, "Choose the learning rate")
-    data_split = validate_user_datasplit()
+    # learning_rate = validate_user_num(float, 0.0001, 1, "Choose the learning rate")
+    # data_split = validate_user_datasplit()
 
-    not_pizza_path, pizza_path = data_valid.main(image_size)
+    # not_pizza_path, pizza_path, not_pizza_amt, pizza_amt = data_valid.save_usable_dataset(image_size)
+    not_pizza_path = Path("not_pizza_resized")
+    pizza_path = Path("pizza_resized")
+    not_pizza_amt = 983
+    pizza_amt = 983
 
+    epoch = 200
+    input_size = image_size * image_size * 3
+    W, B = mlp.init_network(input_size, 4096, 512, 1)  
+    losses = []
+    for i in range(epoch):
+        rand_img, label = data_valid.pick_img([not_pizza_path, pizza_path], [not_pizza_amt, pizza_amt])
+        X = mlp.img_input(rand_img)
+
+        Z, A = mlp.forward_propagation(X, W, B)
+        loss = mlp.obtain_loss(label, A[-1])
+
+        losses.append(loss)
+
+        dW, dB = mlp.back_propagation(X, W, B, Z, A, label)
+        W, B = mlp.update_param(dW, dB, W, B, 0.001)
+        print(epoch - i, end="\r")
+    
+    graph.line_graph(range(epoch), losses)
 
 # validate ranged user input for int/float
 def validate_user_num(type, min, max, message):
@@ -74,7 +99,7 @@ def valid_argv(argv) -> int:
 
     user_path = Path(argv[1])
 
-    # checks valid dir or path
+    # checks valid dir
     if not data_valid.valid_file(user_path):
         if not user_path.is_dir():
             print(f"{colour.RED}Ensure <path> is a valid file or directory in the parent directory{colour.RESET}")
@@ -83,6 +108,7 @@ def valid_argv(argv) -> int:
         # valid folder
         return 1
 
+    # valid file, invalid image
     if not data_valid.valid_image(user_path):
         print(f"{colour.RED}Ensure <file> is a valid image{colour.RESET}")
         return -1
