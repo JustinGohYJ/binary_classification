@@ -36,8 +36,8 @@ def main() -> None:
             [not_pizza_path, pizza_path], W, B, 0.01, batch_size
         )
         losses.append(avg_loss)
-        print("         \r", end="")
-        print(epoch - i, end="\r")
+        print("\r         \r", end="")
+        print(epoch - i)
 
     graph.line_graph(range(epoch), losses)
 

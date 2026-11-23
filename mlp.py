@@ -16,14 +16,16 @@ def xavier_init(fan_in, fan_out) -> float:
 
 # for relu
 def he_init(fan_in) -> float:
-    val = 2 / fan_in
-    val = math.sqrt(val)
-    return val
+    return math.sqrt(6 / fan_in)
 
 
 def sigmoid(val) -> np.array:
-    fx = np.exp(val) / (1 + np.exp(val))
-    return fx
+    result = np.empty_like(val, dtype=float)
+    positive = val >= 0
+    result[positive] = 1 / (1 + np.exp(-val[positive]))
+    exp_val = np.exp(val[~positive])
+    result[~positive] = exp_val / (1 + exp_val)
+    return result
 
 
 def delta_sigmoid(val) -> np.array:
@@ -61,7 +63,10 @@ def init_network(*layers):
     w = []
     b = []
     for layer in range(len(layers) - 1):
-        w_val = xavier_init(layers[layer], layers[layer + 1])
+        if layer == len(layers) - 2:
+            w_val = xavier_init(layers[layer], layers[layer + 1])
+        else:
+            w_val = he_init(layers[layer])
         
         w_layer = np.random.uniform(low=(-1 * w_val), 
                                     high=w_val, 
@@ -77,16 +82,10 @@ def forward_propagation(x, w, b):
     Z = []
     A = []
 
-    z = np.dot(x, w[0]) + b[0]
-    a = sigmoid(z)
-
-    Z.append(z)
-    A.append(a)
-
-    for i in range(1, len(w)):
-        z = np.dot(a, w[i]) + b[i]
-        a = sigmoid(z)
-
+    for i in range(len(w)):
+        prev_a = x if i == 0 else A[-1]
+        z = np.dot(prev_a, w[i]) + b[i]
+        a = sigmoid(z) if i == len(w) - 1 else relu(z)
         Z.append(z)
         A.append(a)
 
@@ -96,8 +95,7 @@ def forward_propagation(x, w, b):
 # binary cross entropy
 def obtain_loss(label, pred) -> float:
 
-    # obtain scalar value
-    pred = pred.item(0, 0)
+    pred = np.clip(pred.item(0, 0), 1e-15, 1 - 1e-15)
 
     term1 = label * math.log(pred)
     term2 = (1 - label) * math.log(1 - pred)
@@ -128,7 +126,7 @@ def back_propagation(x, w, b, z, a, y):
     # hidden layer delta, not including the first
     for i in range (-2, len(w) * -1, -1):
         d_i_a = np.dot(d_z[0], w[(i + 1)].T)
-        d_i_z = np.multiply(d_i_a, delta_sigmoid(a[i]))
+        d_i_z = np.multiply(d_i_a, delta_relu(z[i]))
 
         d_i_w = np.dot(a[i-1].T, d_i_z)
         d_i_b = d_i_z
@@ -139,7 +137,7 @@ def back_propagation(x, w, b, z, a, y):
 
     # first layer
     d_first_a = np.dot(d_z[0], w[1].T)
-    d_first_z = np.multiply(d_first_a, delta_sigmoid(a[0]))
+    d_first_z = np.multiply(d_first_a, delta_relu(z[0]))
 
     #reshape input from 1d array to 2d array column vector 
     x = x.reshape(-1, 1)
@@ -150,6 +148,15 @@ def back_propagation(x, w, b, z, a, y):
     d_b.insert(0, d_first_b)
 
     return d_w, d_b
+
+
+def update_param(dw, db, w, b, learning_rate):
+    for i in range(len(w)):
+        w[i] -= learning_rate * dw[i]
+        b[i] -= learning_rate * db[i]
+
+    return w, b
+
 
 def train_mini_batch(image_dirs, w, b, learning_rate, batch_size):
     samples = []
@@ -181,11 +188,3 @@ def train_mini_batch(image_dirs, w, b, learning_rate, batch_size):
 
     w, b = update_param(avg_dw, avg_db, w, b, learning_rate)
     return w, b, total_loss / batch_size
-
-
-def update_param(dw, db, w, b, learning_rate):
-    for i in range(len(w)):
-        w[i] -= learning_rate * dw[i]
-        b[i] -= learning_rate * db[i]
-
-    return w, b
