@@ -18,7 +18,7 @@ def sigmoid(val) -> np.array:
     return fx
 
 
-def delta_sigmoid(val):
+def delta_sigmoid(val) -> np.array:
     #element wise multiplication
     return val * (1 - val)
 
@@ -142,19 +142,3 @@ def update_param(dw, db, w, b, learning_rate):
         b[i] -= learning_rate * db[i]
 
     return w, b
-
-
-X = img_input("pizza_resized/001.png")
-W, B = init_network(12288, 4096, 256, 128, 1)
-label = True
-
-Z, A = forward_propagation(X, W, B)
-loss = obtain_loss(label, A[-1])
-print(loss)
-
-dW, dB = back_propagation(X, W, B, Z, A, label)
-W, B = update_param(dW, dB, W, B, 0.003)
-
-Z, A = forward_propagation(X, W, B)
-loss = obtain_loss(label, A[-1])
-print(loss)

@@ -1,16 +1,18 @@
 import kagglehub
 import colour
+import random
 from PIL import Image
 from pathlib import Path
 
-def main(img_size) -> tuple[Path, Path]:
+def save_usable_dataset(img_size) -> tuple[Path, Path]:
     training_dataset = Path(kagglehub.dataset_download("carlosrunner/pizza-not-pizza"))
     training_dataset = training_dataset / "pizza_not_pizza"
+
     path_np, image_path_np, path_p, image_path_p = create_paths(training_dataset)
     # save resized img to new path
-    resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size)
+    non_pizza_amt, pizza_amt = resize_img_dir(path_np, image_path_np, path_p, image_path_p, img_size)
     
-    return image_path_np, image_path_p
+    return image_path_np, image_path_p, non_pizza_amt, pizza_amt
 
 
 # create path variables
@@ -30,12 +32,17 @@ def create_paths(path) -> tuple[Path, Path, Path, Path]:
     return path_np, image_path_np, path_p, image_path_p
 
 
-# just handles the printing
-def resize_img_print(path_np, image_path_np, path_p, image_path_p, img_size) -> None:
+# handles the printing, return the amt for both 
+def resize_img_dir(path_np, image_path_np, path_p, image_path_p, img_size) -> tuple[int, int]:
     print("Handling non pizza files", end='\r', flush=True)
-    print(f"{colour.BLUE}Total non pizza files: {resize_img(path_np, image_path_np, img_size)}{colour.RESET}")
+    non_pizza_total = resize_img(path_np, image_path_np, img_size)
+    print(f"{colour.BLUE}Total non pizza files: {non_pizza_total}{colour.RESET}")
+
     print("Handling pizza files", end='\r', flush=True)
-    print(f"{colour.BLUE}Total pizza files: {resize_img(path_p, image_path_p, img_size)}{colour.RESET}")
+    pizza_total = resize_img(path_p, image_path_p, img_size)
+    print(f"{colour.BLUE}Total pizza files: {pizza_total}{colour.RESET}")
+
+    return non_pizza_total, pizza_total
 
 
 # resize all image from cur_path and saved it to new_path
@@ -75,3 +82,13 @@ def valid_image(item) -> bool:
         return False
     
     return True
+
+
+#the random number becomes the label
+def pick_img(paths, amt) -> str:
+    r_num = random.randint(0, 1)
+    folder = str(paths[r_num])
+    file = f"{random.randint(1, amt[r_num]):03d}"
+    file = str(file)
+
+    return f"{folder}/{file}.png", r_num
