@@ -8,6 +8,10 @@ A convolutional neural network (CNN) is the more suitable architecture for image
 
 To make the input size manageable, each image is resized to $64 \\times 64$ pixels. The red, green, and blue values for every pixel are provided to the input layer, giving it $64 \\times 64 \\times 3 = 12{,}288$ input values. The network has two hidden layers, and the estimated training time is around one hour.
 
+## Mini-batch training
+
+Each training step samples 32 distinct PNG files from the not-pizza and pizza folders, computes each image's loss and gradients, averages the gradients, and updates the parameters once after the batch. The plotted loss is the mean loss for that batch, measured before its update.
+
 
 ## Xavier initialization
 

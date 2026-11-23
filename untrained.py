@@ -12,40 +12,33 @@ def main() -> None:
     1: dir
     -1: invalid
     '''
-    user_type = valid_argv(sys.argv)
-    if user_type == -1:
-        return
+    # user_type = valid_argv(sys.argv)
+    # if user_type == -1:
+    #     return
 
-    print(user_type)
+    # print(user_type)
     image_size = 64
 
     # epoch = validate_user_num(int, 1, 9999, "Enter a suitable epochs")
     # learning_rate = validate_user_num(float, 0.0001, 1, "Choose the learning rate")
     # data_split = validate_user_datasplit()
 
-    # not_pizza_path, pizza_path, not_pizza_amt, pizza_amt = data_valid.save_usable_dataset(image_size)
     not_pizza_path = Path("not_pizza_resized")
     pizza_path = Path("pizza_resized")
-    not_pizza_amt = 983
-    pizza_amt = 983
 
-    epoch = 200
+    epoch = 100
+    batch_size = 32
     input_size = image_size * image_size * 3
-    W, B = mlp.init_network(input_size, 4096, 512, 1)  
+    W, B = mlp.init_network(input_size, 4096, 512, 1)
     losses = []
     for i in range(epoch):
-        rand_img, label = data_valid.pick_img([not_pizza_path, pizza_path], [not_pizza_amt, pizza_amt])
-        X = mlp.img_input(rand_img)
-
-        Z, A = mlp.forward_propagation(X, W, B)
-        loss = mlp.obtain_loss(label, A[-1])
-
-        losses.append(loss)
-
-        dW, dB = mlp.back_propagation(X, W, B, Z, A, label)
-        W, B = mlp.update_param(dW, dB, W, B, 0.001)
+        W, B, avg_loss = mlp.train_mini_batch(
+            [not_pizza_path, pizza_path], W, B, 0.01, batch_size
+        )
+        losses.append(avg_loss)
+        print("         \r", end="")
         print(epoch - i, end="\r")
-    
+
     graph.line_graph(range(epoch), losses)
 
 # validate ranged user input for int/float

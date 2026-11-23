@@ -1,4 +1,6 @@
-import pandas as pd
+import random
+from pathlib import Path
+
 import numpy as np
 import math
 from PIL import Image
@@ -13,15 +15,14 @@ def xavier_init(fan_in, fan_out) -> float:
 
 
 # for relu
-# def he_init(fan_in) -> float:
-#     val = 2 / fan_in
-#     val = math.sqrt(val)
-#     return val
+def he_init(fan_in) -> float:
+    val = 2 / fan_in
+    val = math.sqrt(val)
+    return val
 
 
 def sigmoid(val) -> np.array:
-    e_to_val = pow(EULER, val)
-    fx = e_to_val / (1 + e_to_val)
+    fx = np.exp(val) / (1 + np.exp(val))
     return fx
 
 
@@ -30,12 +31,12 @@ def delta_sigmoid(val) -> np.array:
     return val * (1 - val)
 
 
-# def relu(val) -> np.array:
-#     return np.maximum(0, val)
+def relu(val) -> np.array:
+    return np.maximum(0, val)
 
 
-# def delta_relu(val) -> np.array:
-#     return val > 0
+def delta_relu(val) -> np.array:
+    return val > 0
 
 
 # Return 1d matrix of pixels of size (size x size x 3)
@@ -149,6 +150,37 @@ def back_propagation(x, w, b, z, a, y):
     d_b.insert(0, d_first_b)
 
     return d_w, d_b
+
+def train_mini_batch(image_dirs, w, b, learning_rate, batch_size):
+    samples = []
+    for label, directory in enumerate(image_dirs):
+        samples.extend(
+            (path, label)
+            for path in Path(directory).glob("*.png")
+            if path.is_file()
+        )
+
+    batch = random.sample(samples, batch_size)
+    avg_dw = [np.zeros_like(layer) for layer in w]
+    avg_db = [np.zeros_like(layer) for layer in b]
+    total_loss = 0.0
+
+    for path, label in batch:
+        x = img_input(path)
+        z, a = forward_propagation(x, w, b)
+        total_loss += obtain_loss(label, a[-1])
+        dw, db = back_propagation(x, w, b, z, a, label)
+
+        for i in range(len(w)):
+            avg_dw[i] += dw[i]
+            avg_db[i] += db[i]
+
+    for i in range(len(w)):
+        avg_dw[i] /= batch_size
+        avg_db[i] /= batch_size
+
+    w, b = update_param(avg_dw, avg_db, w, b, learning_rate)
+    return w, b, total_loss / batch_size
 
 
 def update_param(dw, db, w, b, learning_rate):
