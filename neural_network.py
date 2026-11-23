@@ -18,6 +18,11 @@ def sigmoid(val) -> np.array:
     return fx
 
 
+def delta_sigmoid(val):
+    #element wise multiplication
+    return val * (1 - val)
+
+
 # Return 1d matrix of pixels of size (size x size x 3)
 def img_input(path) -> np.arary:
     img = Image.open(path)
@@ -83,12 +88,69 @@ def obtain_loss(label, pred) -> float:
     loss = -1 * (term1 + term2)
     return loss
 
+
+# formula recap
+# z1 = w1 * x + b1 
+# or
+# zi = wi * ai-1 + bi
+# ai = sig(zi)
+# y = label
+def back_propagation(x, w, b, z, a, y):
+    d_z = []
+    d_w = []
+    d_b = []
+
+    # last layer delta
+    d_last_z = a[-1] - y
+    d_last_w = np.dot(a[-2].T, d_last_z)
+    d_last_b = d_last_z
+
+    d_z.append(d_last_z)
+    d_w.append(d_last_w)
+    d_b.append(d_last_b)
+    
+    # hidden layer delta, not including the first
+    for i in range (-2, len(w) * -1, -1):
+        print(f"hidden layer: {i}")
+        d_i_a = np.dot(d_z[0], w[(i + 1)].T)
+        d_i_z = np.multiply(d_i_a, delta_sigmoid(a[i]))
+
+        d_i_w = np.dot(a[i-1].T, d_i_z)
+        d_i_b = d_i_z
+
+        d_z.insert(0, d_i_z)
+        d_w.insert(0, d_i_w)
+        d_b.insert(0, d_i_b)
+
+    # first layer
+    d_first_a = np.dot(d_z[0], w[1].T)
+    d_first_z = np.multiply(d_first_a, delta_sigmoid(a[0]))
+
+    #reshape input from 1d array to 2d array column vector 
+    x = x.reshape(-1, 1)
+    d_first_w = np.dot(x, d_first_z)
+    d_first_b = d_first_z
+
+    d_w.insert(0, d_first_w)
+    d_b.insert(0, d_first_b)
+
+    return d_w, d_b
+
+
 X = img_input("pizza_resized/001.png")
-W, B = init_network(12288, 4096, 256, 1)
+W, B = init_network(12288, 4096, 256, 128, 1)
 
 label = True
 Z, A = forward_propagation(X, W, B)
-
-
 loss = obtain_loss(label, A[2])
-print(loss)
+dW, dB = back_propagation(X, W, B, Z, A, label)
+
+
+for i in range (-1, len(W) * -1 -1, -1):
+    print(f"Weights {i}: {np.shape(W[i])}")
+    print(f"Bias {i}: {np.shape(B[i])}")
+    print(f"Z {i}: {np.shape(Z[i])}")
+    print(f"Activation {i}: {np.shape(A[i])}")
+    print(f"Dw {i}: {np.shape(dW[i])}")
+    print(f"Db {i}: {np.shape(dB[i])}")
+    print()
