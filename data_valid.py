@@ -17,8 +17,8 @@ def main(img_size) -> tuple[Path, Path]:
 def create_paths(path) -> tuple[Path, Path, Path, Path]:
     print("Handling path creation", end='\r')
 
-    path_np = Path(path + 'not_pizza')
-    path_p = Path(path + 'pizza')
+    path_np = path / "not_pizza"
+    path_p = path / "pizza"
 
     image_path_np = Path("not_pizza_resized")
     image_path_np.mkdir(exist_ok=True)

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+from PIL import Image
 
 EULER = 2.718281828459045
 
@@ -10,10 +11,12 @@ def xavier_init(fan_in, fan_out) -> float:
     val = math.sqrt(val)
     return val
 
-def sigmoid(val) -> float:
+
+def sigmoid(val) -> np.array:
     e_to_val = pow(EULER, val)
     fx = e_to_val / (1 + e_to_val)
     return fx
+
 
 def init_network(*layers):
     '''
@@ -36,5 +39,59 @@ def init_network(*layers):
         b.append(b_layer)
     return w, b
 
-W, B = init_network(12288, 4096, 256, 256, 1)
-        
+
+# Return 1d matrix of pixels of size (size x size x 3)
+def img_input(path) -> np.arary:
+    img = Image.open(path)
+    rgb_img = img.convert("RGB")
+    
+    # convert to r,g,b,r,g,b,r,g,b,... [0-1]
+    pixels = np.array(rgb_img).flatten()
+    pixels = pixels / 255
+
+    return pixels
+
+
+def forward_propagation(x, w, b):
+    Z = []
+    A = []
+
+    z = np.dot(x, w[0]) + b[0]
+    a = sigmoid(z)
+
+    Z.append(z)
+    A.append(a)
+
+    for i in range(1, len(w)):
+        z = np.dot(a, w[i]) + b[i]
+        a = sigmoid(z)
+
+        Z.append(z)
+        A.append(a)
+
+    return Z, A
+
+
+# binary cross entropy
+def obtain_loss(label, pred) -> float:
+    pred = pred.item(0, 0) - 0.9
+
+    print(f"from item: {pred}")
+    term1 = label * math.log(pred)
+    term2 = (1 - label) * math.log(1 - pred)
+    loss = -1 * (term1 + term2)
+    return loss
+
+
+W, B = init_network(12288, 4096, 256, 1)
+X = img_input("pizza_resized/001.png")
+
+label = True
+Z, A = forward_propagation(X, W, B)
+
+A[2] = np.ones((1, 1))
+print(A[2])
+
+
+loss = obtain_loss(label, A[2])
+print(loss)
