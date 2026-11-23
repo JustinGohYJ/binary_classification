@@ -161,30 +161,43 @@ def update_param(dw, db, w, b, learning_rate):
 def train_mini_batch(image_dirs, w, b, learning_rate, batch_size):
     samples = []
     for label, directory in enumerate(image_dirs):
-        samples.extend(
-            (path, label)
-            for path in Path(directory).glob("*.png")
-            if path.is_file()
+        for path in Path(directory).glob("*.png"):
+            if path.is_file():
+                samples.append((path, label))
+
+    random.shuffle(samples)
+    total_loss = 0.0
+    total_batches = (len(samples) + batch_size - 1) // batch_size
+
+
+    for batch_number, start in enumerate(
+        range(0, len(samples), batch_size), start=1
+    ):
+        batch = samples[start:start + batch_size]
+        batch_dw = [np.zeros_like(layer) for layer in w]
+        batch_db = [np.zeros_like(layer) for layer in b]
+
+        for path, label in batch:
+            x = img_input(path)
+            z, a = forward_propagation(x, w, b)
+            total_loss += obtain_loss(label, a[-1])
+            dw, db = back_propagation(x, w, b, z, a, label)
+
+            for layer in range(len(w)):
+                batch_dw[layer] += dw[layer]
+                batch_db[layer] += db[layer]
+
+        for layer in range(len(w)):
+            batch_dw[layer] /= len(batch)
+            batch_db[layer] /= len(batch)
+
+        w, b = update_param(batch_dw, batch_db, w, b, learning_rate)
+        print(
+            f"\rMini-batch {batch_number}/{total_batches}",
+            end="",
+            flush=True,
         )
 
-    batch = random.sample(samples, batch_size)
-    avg_dw = [np.zeros_like(layer) for layer in w]
-    avg_db = [np.zeros_like(layer) for layer in b]
-    total_loss = 0.0
+    print()
 
-    for path, label in batch:
-        x = img_input(path)
-        z, a = forward_propagation(x, w, b)
-        total_loss += obtain_loss(label, a[-1])
-        dw, db = back_propagation(x, w, b, z, a, label)
-
-        for i in range(len(w)):
-            avg_dw[i] += dw[i]
-            avg_db[i] += db[i]
-
-    for i in range(len(w)):
-        avg_dw[i] /= batch_size
-        avg_db[i] /= batch_size
-
-    w, b = update_param(avg_dw, avg_db, w, b, learning_rate)
-    return w, b, total_loss / batch_size
+    return w, b, total_loss / len(samples)

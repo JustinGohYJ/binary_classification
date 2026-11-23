@@ -26,14 +26,14 @@ def main() -> None:
     not_pizza_path = Path("not_pizza_resized")
     pizza_path = Path("pizza_resized")
 
-    epoch = 100
+    epoch = 1
     batch_size = 32
     input_size = image_size * image_size * 3
     W, B = mlp.init_network(input_size, 4096, 512, 1)
     losses = []
     for i in range(epoch):
         W, B, avg_loss = mlp.train_mini_batch(
-            [not_pizza_path, pizza_path], W, B, 0.01, batch_size
+            [not_pizza_path, pizza_path], W, B, 0.003, batch_size
         )
         losses.append(avg_loss)
         print("\r         \r", end="")
