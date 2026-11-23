@@ -111,7 +111,6 @@ def back_propagation(x, w, b, z, a, y):
     
     # hidden layer delta, not including the first
     for i in range (-2, len(w) * -1, -1):
-        print(f"hidden layer: {i}")
         d_i_a = np.dot(d_z[0], w[(i + 1)].T)
         d_i_z = np.multiply(d_i_a, delta_sigmoid(a[i]))
 
@@ -137,20 +136,25 @@ def back_propagation(x, w, b, z, a, y):
     return d_w, d_b
 
 
+def update_param(dw, db, w, b, learning_rate):
+    for i in range(len(w)):
+        w[i] -= learning_rate * dw[i]
+        b[i] -= learning_rate * db[i]
+
+    return w, b
+
+
 X = img_input("pizza_resized/001.png")
 W, B = init_network(12288, 4096, 256, 128, 1)
-
 label = True
+
 Z, A = forward_propagation(X, W, B)
-loss = obtain_loss(label, A[2])
+loss = obtain_loss(label, A[-1])
+print(loss)
+
 dW, dB = back_propagation(X, W, B, Z, A, label)
+W, B = update_param(dW, dB, W, B, 0.003)
 
-
-for i in range (-1, len(W) * -1 -1, -1):
-    print(f"Weights {i}: {np.shape(W[i])}")
-    print(f"Bias {i}: {np.shape(B[i])}")
-    print(f"Z {i}: {np.shape(Z[i])}")
-    print(f"Activation {i}: {np.shape(A[i])}")
-    print(f"Dw {i}: {np.shape(dW[i])}")
-    print(f"Db {i}: {np.shape(dB[i])}")
-    print()
+Z, A = forward_propagation(X, W, B)
+loss = obtain_loss(label, A[-1])
+print(loss)
