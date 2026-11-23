@@ -16,7 +16,7 @@ def main() -> None:
     print(user_type)
     image_size = 64
 
-    epoch = validate_user_num(int, 1, 9999, "Enter a suitable epochs")
+    # epoch = validate_user_num(int, 1, 9999, "Enter a suitable epochs")
     learning_rate = validate_user_num(float, 0.0001, 0.01, "Choose the learning rate")
     data_split = validate_user_datasplit()
 
