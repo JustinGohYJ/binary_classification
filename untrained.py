@@ -42,7 +42,8 @@ def main() -> None:
 
         dW, dB = mlp.back_propagation(X, W, B, Z, A, label)
         W, B = mlp.update_param(dW, dB, W, B, learning_rate)
-
+        print(f"\r  {i}     ")
+    print(losses, sep="\n")
 
 # validate ranged user input for int/float
 def validate_user_num(type, min, max, message):
