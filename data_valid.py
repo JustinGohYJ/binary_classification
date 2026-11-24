@@ -82,14 +82,3 @@ def valid_image(item) -> bool:
         return False
     
     return True
-
-
-#the random number becomes the label
-def pick_img(paths, amt) -> str:
-    r_num = random.randint(0, 1)
-    folder = str(paths[r_num])
-    file = f"{random.randint(1, amt[r_num]):03d}"
-    # file = f"{random.randint(1, 5):03d}"
-    file = str(file)
-
-    return f"{folder}/{file}.png", r_num

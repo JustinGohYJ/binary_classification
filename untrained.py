@@ -26,9 +26,10 @@ def main() -> None:
     not_pizza_path = Path("not_pizza_resized")
     pizza_path = Path("pizza_resized")
 
-    epoch = 1
+    epoch = 50
     batch_size = 32
     input_size = image_size * image_size * 3
+    
     W, B = mlp.init_network(input_size, 4096, 512, 1)
     losses = []
     for i in range(epoch):

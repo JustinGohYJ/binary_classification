@@ -21,3 +21,4 @@ def line_graph(x_range, y_data, title="loss curve", xlabel="epoch", ylabel="loss
     plt.legend(loc="best")
     plt.tight_layout()
     plt.show()
+    plt.savefig()
