@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import math
+import handle_data
 from PIL import Image
 
 EULER = 2.718281828459045
@@ -19,13 +20,9 @@ def he_init(fan_in) -> float:
     return math.sqrt(6 / fan_in)
 
 
+# mathematical equivalent
 def sigmoid(val) -> np.array:
-    result = np.empty_like(val, dtype=float)
-    positive = val >= 0
-    result[positive] = 1 / (1 + np.exp(-val[positive]))
-    exp_val = np.exp(val[~positive])
-    result[~positive] = exp_val / (1 + exp_val)
-    return result
+    return (0.5 * (1 + np.tanh(0.5 * val)))
 
 
 def delta_sigmoid(val) -> np.array:
@@ -52,18 +49,16 @@ def img_input(path) -> np.arary:
 
     return pixels
 
-
+# he init for all except last
 def init_network(*layers):
     '''
-    it should return, layers, bias, weights, (and possibly activation)
-    the idea is that 
     W is a list of 2d matrix for each layer
     b is a list of 1d matrix for each layer
     '''
     w = []
     b = []
     for layer in range(len(layers) - 1):
-        if layer == len(layers) - 2:
+        if layer == len(layers) - 2: #last layer
             w_val = xavier_init(layers[layer], layers[layer + 1])
         else:
             w_val = he_init(layers[layer])
@@ -78,14 +73,23 @@ def init_network(*layers):
     return w, b
 
 
+# applies relu to all except last
 def forward_propagation(x, w, b):
     Z = []
     A = []
 
-    for i in range(len(w)):
-        prev_a = x if i == 0 else A[-1]
+    for i in range(len(w)): 
+        if i == 0: 
+            prev_a = x
+        else:
+            prev_a = A[-1]
+        
         z = np.dot(prev_a, w[i]) + b[i]
-        a = sigmoid(z) if i == len(w) - 1 else relu(z)
+        if i == len(w) - 1:
+            a = sigmoid(z) 
+        else:
+            a = relu(z)
+        
         Z.append(z)
         A.append(a)
 
@@ -94,7 +98,7 @@ def forward_propagation(x, w, b):
 
 # binary cross entropy
 def obtain_loss(label, pred) -> float:
-
+    # prevent breaking log function at 0
     pred = np.clip(pred.item(0, 0), 1e-15, 1 - 1e-15)
 
     term1 = label * math.log(pred)
@@ -158,46 +162,51 @@ def update_param(dw, db, w, b, learning_rate):
     return w, b
 
 
-def train_mini_batch(image_dirs, w, b, learning_rate, batch_size):
+def full_pass(image_dirs, w, b, learning_rate, batch_size):
+    
     samples = []
-    for label, directory in enumerate(image_dirs):
-        for path in Path(directory).glob("*.png"):
-            if path.is_file():
-                samples.append((path, label))
-
-    random.shuffle(samples)
+    samples_amt = len(samples)
     total_loss = 0.0
-    total_batches = (len(samples) + batch_size - 1) // batch_size
-
+    total_batches = math.ceil(samples_amt / batch_size)
 
     for batch_number, start in enumerate(
-        range(0, len(samples), batch_size), start=1
+        range(0, samples_amt, batch_size), start=1
     ):
-        batch = samples[start:start + batch_size]
-        batch_dw = [np.zeros_like(layer) for layer in w]
-        batch_db = [np.zeros_like(layer) for layer in b]
+        batch = samples[start:(start + batch_size)]
+        w, b, batch_loss = run_mini_batch(batch, w, b, learning_rate)
+        total_loss += batch_loss
 
-        for path, label in batch:
-            x = img_input(path)
-            z, a = forward_propagation(x, w, b)
-            total_loss += obtain_loss(label, a[-1])
-            dw, db = back_propagation(x, w, b, z, a, label)
-
-            for layer in range(len(w)):
-                batch_dw[layer] += dw[layer]
-                batch_db[layer] += db[layer]
-
-        for layer in range(len(w)):
-            batch_dw[layer] /= len(batch)
-            batch_db[layer] /= len(batch)
-
-        w, b = update_param(batch_dw, batch_db, w, b, learning_rate)
         print(
             f"\rMini-batch {batch_number}/{total_batches}",
             end="",
             flush=True,
         )
-
     print()
+    
+    return w, b, (total_loss / len(samples))
 
-    return w, b, total_loss / len(samples)
+
+def run_mini_batch(batch, w, b, learning_rate):
+    mlp_size = len(w)
+    batch_dw = [np.zeros_like(layer) for layer in w]
+    batch_db = [np.zeros_like(layer) for layer in b]
+    batch_loss = 0.0
+
+    # for each image
+    for path, label in batch:
+        x = img_input(path)
+        z, a = forward_propagation(x, w, b)
+        total_loss += obtain_loss(label, a[-1])
+        dw, db = back_propagation(x, w, b, z, a, label)
+
+        for layer in range(mlp_size):
+            batch_dw[layer] += dw[layer]
+            batch_db[layer] += db[layer]
+
+    # last batch can be smaller, use len()
+    for layer in range(mlp_size):
+        batch_dw[layer] /= len(batch)
+        batch_db[layer] /= len(batch)
+
+    w, b = update_param(batch_dw, batch_db, w, b, learning_rate)
+    return w, b, batch_loss

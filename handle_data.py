@@ -82,3 +82,15 @@ def valid_image(item) -> bool:
         return False
     
     return True
+
+
+def build_samples(image_dirs):
+    samples = []
+
+    # label will just be 0 or 1 as image dirs only have 2 obj
+    for label, dir in enumerate(image_dirs):
+        for path in Path(dir).iterdir():
+            samples.append((path, label))
+
+    random.shuffle(samples)
+    return samples

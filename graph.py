@@ -1,12 +1,14 @@
 import matplotlib.pyplot as plt
 
-def line_graph(x_range, y_data, title="loss curve", xlabel="epoch", ylabel="loss"):
-     # Sanity check: lengths must match
-    if len(x_range) != len(y_data):
-        raise ValueError(
-            f"x_range has {len(x_range)} values but y_data has {len(y_data)}."
-        )
-
+def line_graph(
+    x_range,
+    y_data,
+    title="loss curve",
+    xlabel="epoch",
+    ylabel="loss",
+    save_path=None,
+):
+    # Sanity check: lengths must match
     # If the user passes a `range` object, convert to a list for plotting
     x_vals = list(x_range)
 
@@ -19,6 +21,9 @@ def line_graph(x_range, y_data, title="loss curve", xlabel="epoch", ylabel="loss
     plt.ylabel(ylabel)
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.legend(loc="best")
+    
     plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.show()
-    plt.savefig()
+    
