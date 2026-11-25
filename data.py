@@ -94,3 +94,13 @@ def build_samples(image_dirs):
 
     random.shuffle(samples)
     return samples
+
+# split the data into train, val, test, remainder into trian
+def build_split(samples, data_split):
+    size = len(samples)
+    n_test = size * data_split[2] // 100
+    n_val = size * data_split[1] // 100
+    n_train = size - n_test - n_val
+
+    i_val = n_train + n_val
+    return samples[:n_train], samples[n_train:i_val], samples[i_val:]

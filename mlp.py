@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import math
-import handle_data
+import data
 from PIL import Image
 
 EULER = 2.718281828459045
@@ -162,28 +162,27 @@ def update_param(dw, db, w, b, learning_rate):
     return w, b
 
 
-def full_pass(image_dirs, w, b, learning_rate, batch_size):
+def full_pass(train, w, b, learning_rate, batch_size):
     
-    samples = []
-    samples_amt = len(samples)
-    total_loss = 0.0
-    total_batches = math.ceil(samples_amt / batch_size)
+    random.shuffle(train)
 
-    for batch_number, start in enumerate(
-        range(0, samples_amt, batch_size), start=1
-    ):
-        batch = samples[start:(start + batch_size)]
+    train_amt = len(train)
+    total_loss = 0.0
+    total_batches = math.ceil(train_amt / batch_size)
+
+    for batch_number, start in enumerate(range(0, train_amt, batch_size)):
+        batch = train[start:(start + batch_size)]
         w, b, batch_loss = run_mini_batch(batch, w, b, learning_rate)
         total_loss += batch_loss
 
         print(
-            f"\rMini-batch {batch_number}/{total_batches}",
+            f"\rMini-batch {batch_number + 1}/{total_batches}",
             end="",
             flush=True,
         )
     print()
     
-    return w, b, (total_loss / len(samples))
+    return w, b
 
 
 def run_mini_batch(batch, w, b, learning_rate):
@@ -196,7 +195,7 @@ def run_mini_batch(batch, w, b, learning_rate):
     for path, label in batch:
         x = img_input(path)
         z, a = forward_propagation(x, w, b)
-        total_loss += obtain_loss(label, a[-1])
+        batch_loss += obtain_loss(label, a[-1])
         dw, db = back_propagation(x, w, b, z, a, label)
 
         for layer in range(mlp_size):
@@ -210,3 +209,15 @@ def run_mini_batch(batch, w, b, learning_rate):
 
     w, b = update_param(batch_dw, batch_db, w, b, learning_rate)
     return w, b, batch_loss
+
+
+def evaluate(samples, w, b):
+    amt = len(samples)
+    total_loss = 0.0
+
+    for path, label in samples:
+        x = img_input(path)
+        z, a = forward_propagation(x, w, b)
+        total_loss += obtain_loss(label, a[-1])
+
+    return total_loss / amt

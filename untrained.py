@@ -1,4 +1,4 @@
-import handle_data
+import data
 import colour
 import sys
 import mlp
@@ -17,28 +17,40 @@ def main() -> None:
     #     return
 
     # print(user_type)
-    # epoch = validate_user_num(int, 1, 9999, "Enter a suitable epochs")
+    # epoch = validate_user_num(int, 1, 999, "Enter a suitable epochs")
     # learning_rate = validate_user_num(float, 0.0001, 1, "Choose the learning rate")
-    # data_split = validate_user_datasplit()
+    data_split = validate_user_datasplit()
 
     not_pizza_path = Path("not_pizza_resized")
     pizza_path = Path("pizza_resized")
     
-
-    epoch = 200
+    samples = data.build_samples([not_pizza_path, pizza_path])
+    train, val, test = data.build_split(samples, data_split)
+    epoch = 150
     batch_size = 32
-    W, B = mlp.init_network(12288, 256, 128, 1)
-    losses = []
+    W, B = mlp.init_network(12288, 200, 100, 1)
+    
+    train_losses = []
+    val_losses = []
     for i in range(epoch):
-        W, B, avg_loss = mlp.full_pass(
+        # train
+        W, B = mlp.full_pass(
             # not pizza = 0, pizza = 1
-            [not_pizza_path, pizza_path], W, B, 0.003, batch_size
+            train, W, B, 0.001, batch_size
         )
-        losses.append(avg_loss)
-        print(f"Epoch: {epoch}")
-        print(f"Loss: {avg_loss}")
+        # to be fair we judge it after updates
+        avg_train_loss = mlp.evaluate(train, W, B)
+        train_losses.append(avg_train_loss)
 
-    graph.line_graph(range(epoch), losses)
+        # val
+        avg_val_loss = mlp.evaluate(val, W, B)
+        val_losses.append(avg_val_loss)
+        
+        print(f"Epoch: {i}")
+        print(f"Training Loss: {avg_train_loss}")
+        print(f"Validation Loss: {avg_val_loss}")
+
+    graph.line_graph(range(epoch), train_losses, val_losses, save_path="training+validation(lower learning rate and size).png")
 
 
 # validate ranged user input for int/float
@@ -58,7 +70,7 @@ def validate_user_num(type, min, max, message):
         return val
             
 
-# handles datasplit input
+# handles datasplit input returns percentage <1
 def validate_user_datasplit() -> list[int]:
     print("Input a suitable percentage split for the data [Must sum to 100]")
     print(f"{colour.PURPLE}Training, Validation, Test{colour.RESET}")
@@ -93,7 +105,7 @@ def valid_argv(argv) -> int:
     user_path = Path(argv[1])
 
     # checks valid dir
-    if not handle_data.valid_file(user_path):
+    if not data.valid_file(user_path):
         if not user_path.is_dir():
             print(f"{colour.RED}Ensure <path> is a valid file or directory in the parent directory{colour.RESET}")
             return -1
@@ -102,7 +114,7 @@ def valid_argv(argv) -> int:
         return 1
 
     # valid file, invalid image
-    if not handle_data.valid_image(user_path):
+    if not data.valid_image(user_path):
         print(f"{colour.RED}Ensure <file> is a valid image{colour.RESET}")
         return -1
 

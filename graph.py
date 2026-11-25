@@ -2,19 +2,26 @@ import matplotlib.pyplot as plt
 
 def line_graph(
     x_range,
-    y_data,
+    train_losses,
+    val_losses,
     title="loss curve",
     xlabel="epoch",
     ylabel="loss",
     save_path=None,
 ):
-    # Sanity check: lengths must match
-    # If the user passes a `range` object, convert to a list for plotting
     x_vals = list(x_range)
+    if len(x_vals) != len(train_losses) or len(x_vals) != len(val_losses):
+        raise ValueError("x_range, train_losses, and val_losses must have equal lengths")
 
     plt.figure(figsize=(8, 4.5))
-    plt.plot(x_vals, y_data, color="tab:blue", linewidth=2,
-             marker="o", markersize=5, label="data")
+    plt.plot(
+        x_vals, train_losses, color="tab:blue", linewidth=2,
+        marker="o", markersize=5, label="training loss"
+    )
+    plt.plot(
+        x_vals, val_losses, color="tab:orange", linewidth=2,
+        marker="o", markersize=5, label="validation loss"
+    )
 
     plt.title(title)
     plt.xlabel(xlabel)
