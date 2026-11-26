@@ -26,17 +26,17 @@ def main() -> None:
     
     samples = data.build_samples([not_pizza_path, pizza_path])
     train, val, test = data.build_split(samples, data_split)
-    epoch = 50
+    epoch = 20
     batch_size = 32
-    W, B = mlp.init_network(12288, 200, 100, 1)
+    W, B = mlp.init_network(12288, 256, 100, 1)
+    optimizer = mlp.Momentum(W, B, beta=0.91)
     
     train_losses = []
     val_losses = []
     for i in range(epoch):
         # train
         W, B = mlp.full_pass(
-            # not pizza = 0, pizza = 1
-            train, W, B, 0.001, batch_size
+            train, W, B, 0.001, batch_size, optimizer
         )
         # to be fair we judge it after updates
         avg_train_loss, train_accuracy = mlp.evaluate(train, W, B)
@@ -47,17 +47,17 @@ def main() -> None:
         val_losses.append(avg_val_loss)
 
         print(f"Epoch: {i + 1}")
-        print(f"Training Loss: {avg_train_loss}")
+        print(f"Training Loss: {avg_train_loss:.3f}")
         print(f"Training Accuracy: {train_accuracy:.2%}")
-        print(f"Validation Loss: {avg_val_loss}")
+        print(f"Validation Loss: {avg_val_loss:.3f}")
         print(f"Validation Accuracy: {val_accuracy:.2%}")
 
-    graph.line_graph(range(epoch), train_losses, val_losses, save_path="training+validation(lower learning rate and size).png")
+    graph.line_graph(range(epoch), train_losses, val_losses, save_path="momentum9135.png")
     true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
     graph.plot_confusion_matrix(
         true_labels,
         predicted_labels,
-        save_path="validation-confusion-matrix.png",
+        save_path="momentum-confusion-matrix9135.png",
     )
 
 

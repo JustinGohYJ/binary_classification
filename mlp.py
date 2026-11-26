@@ -162,7 +162,24 @@ def update_param(dw, db, w, b, learning_rate):
     return w, b
 
 
-def full_pass(train, w, b, learning_rate, batch_size):
+class Momentum:
+    def __init__(self, w, b, beta=0.9):
+        self.beta = beta
+        self.m_w = [np.zeros_like(wi) for wi in w]
+        self.m_b = [np.zeros_like(bi) for bi in b]
+
+    def update(self, dw, db, w, b, learning_rate):
+        for i in range(len(w)):
+            self.m_w[i] = self.beta * self.m_w[i] + dw[i]
+            w[i] -= learning_rate * self.m_w[i]
+
+            self.m_b[i] = self.beta * self.m_b[i] + db[i]
+            b[i] -= learning_rate * self.m_b[i]
+
+        return w, b
+
+
+def full_pass(train, w, b, learning_rate, batch_size, optimizer):
     
     random.shuffle(train)
 
@@ -172,7 +189,9 @@ def full_pass(train, w, b, learning_rate, batch_size):
 
     for batch_number, start in enumerate(range(0, train_amt, batch_size)):
         batch = train[start:(start + batch_size)]
-        w, b, batch_loss = run_mini_batch(batch, w, b, learning_rate)
+        w, b, batch_loss = run_mini_batch(
+            batch, w, b, learning_rate, optimizer
+        )
         total_loss += batch_loss
 
         print(
@@ -185,7 +204,7 @@ def full_pass(train, w, b, learning_rate, batch_size):
     return w, b
 
 
-def run_mini_batch(batch, w, b, learning_rate):
+def run_mini_batch(batch, w, b, learning_rate, optimizer):
     mlp_size = len(w)
     batch_dw = [np.zeros_like(layer) for layer in w]
     batch_db = [np.zeros_like(layer) for layer in b]
@@ -207,7 +226,7 @@ def run_mini_batch(batch, w, b, learning_rate):
         batch_dw[layer] /= len(batch)
         batch_db[layer] /= len(batch)
 
-    w, b = update_param(batch_dw, batch_db, w, b, learning_rate)
+    w, b = optimizer.update(batch_dw, batch_db, w, b, learning_rate)
     return w, b, batch_loss
 
 
@@ -234,7 +253,7 @@ def obtain_accuracy(labels, predictions):
     correct = 0
 
     for label, prediction in zip(labels, predictions):
-        guess = int(prediction >= 0.5)
+        guess = int(prediction >= 0.35)
         correct += guess == label
 
     return correct / len(labels)
@@ -247,7 +266,7 @@ def obtain_predictions(samples, w, b):
     for path, label in samples:
         x = img_input(path)
         _, a = forward_propagation(x, w, b)
-        prediction = int(a[-1].item(0, 0) >= 0.5)
+        prediction = int(a[-1].item(0, 0) >= 0.35)
         true_labels.append(label)
         predicted_labels.append(prediction)
 
