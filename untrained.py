@@ -26,13 +26,17 @@ def main() -> None:
     
     samples = data.build_samples([not_pizza_path, pizza_path])
     train, val, test = data.build_split(samples, data_split)
-    epoch = 20
+    epoch = 30
     batch_size = 32
     W, B = mlp.init_network(12288, 256, 100, 1)
-    optimizer = mlp.Momentum(W, B, beta=0.91)
+    optimizer = mlp.Momentum(W, B, beta=0.9)
     
     train_losses = []
     val_losses = []
+    best_val_loss = float("inf")
+    best_epoch = 0
+    best_W = None
+    best_B = None
     for i in range(epoch):
         # train
         W, B = mlp.full_pass(
@@ -46,18 +50,31 @@ def main() -> None:
         avg_val_loss, val_accuracy = mlp.evaluate(val, W, B)
         val_losses.append(avg_val_loss)
 
+        # save best parameters
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            best_epoch = i + 1
+            best_W = [layer.copy() for layer in W]
+            best_B = [layer.copy() for layer in B]
+
+
         print(f"Epoch: {i + 1}")
         print(f"Training Loss: {avg_train_loss:.3f}")
         print(f"Training Accuracy: {train_accuracy:.2%}")
         print(f"Validation Loss: {avg_val_loss:.3f}")
         print(f"Validation Accuracy: {val_accuracy:.2%}")
 
-    graph.line_graph(range(epoch), train_losses, val_losses, save_path="momentum9135.png")
+    W, B = best_W, best_B
+    print(f"Best epoch: {best_epoch} (validation loss: {best_val_loss:.3f})")
+
+    graph.line_graph(range(epoch), train_losses, val_losses, save_path="bestweigth33.png")
+
+    # confusion matrix on best weights
     true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
     graph.plot_confusion_matrix(
         true_labels,
         predicted_labels,
-        save_path="momentum-confusion-matrix9135.png",
+        save_path="bestweigh33.png",
     )
 
 
