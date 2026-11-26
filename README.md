@@ -12,6 +12,10 @@ To make the input size manageable, each image is resized to $64 \\times 64$ pixe
 
 Each training step samples 32 distinct PNG files from the not-pizza and pizza folders, computes each image's loss and gradients, averages the gradients, and updates the parameters once after the batch. The plotted loss is the mean loss for that batch, measured before its update.
 
+## Validation confusion matrix
+
+After training, the validation predictions are plotted in a confusion matrix with actual classes as rows and predicted classes as columns.
+
 
 ## Xavier initialization
 

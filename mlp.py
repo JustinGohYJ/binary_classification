@@ -214,10 +214,41 @@ def run_mini_batch(batch, w, b, learning_rate):
 def evaluate(samples, w, b):
     amt = len(samples)
     total_loss = 0.0
+    labels = []
+    predictions = []
 
     for path, label in samples:
         x = img_input(path)
-        z, a = forward_propagation(x, w, b)
+        _, a = forward_propagation(x, w, b)
+        prediction = a[-1].item(0, 0)
         total_loss += obtain_loss(label, a[-1])
+        labels.append(label)
+        predictions.append(prediction)
 
-    return total_loss / amt
+    avg_loss = total_loss / amt
+    accuracy = obtain_accuracy(labels, predictions)
+    return avg_loss, accuracy
+
+
+def obtain_accuracy(labels, predictions):
+    correct = 0
+
+    for label, prediction in zip(labels, predictions):
+        guess = int(prediction >= 0.5)
+        correct += guess == label
+
+    return correct / len(labels)
+
+
+def obtain_predictions(samples, w, b):
+    true_labels = []
+    predicted_labels = []
+
+    for path, label in samples:
+        x = img_input(path)
+        _, a = forward_propagation(x, w, b)
+        prediction = int(a[-1].item(0, 0) >= 0.5)
+        true_labels.append(label)
+        predicted_labels.append(prediction)
+
+    return true_labels, predicted_labels

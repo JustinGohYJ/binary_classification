@@ -26,7 +26,7 @@ def main() -> None:
     
     samples = data.build_samples([not_pizza_path, pizza_path])
     train, val, test = data.build_split(samples, data_split)
-    epoch = 150
+    epoch = 50
     batch_size = 32
     W, B = mlp.init_network(12288, 200, 100, 1)
     
@@ -39,18 +39,26 @@ def main() -> None:
             train, W, B, 0.001, batch_size
         )
         # to be fair we judge it after updates
-        avg_train_loss = mlp.evaluate(train, W, B)
+        avg_train_loss, train_accuracy = mlp.evaluate(train, W, B)
         train_losses.append(avg_train_loss)
 
         # val
-        avg_val_loss = mlp.evaluate(val, W, B)
+        avg_val_loss, val_accuracy = mlp.evaluate(val, W, B)
         val_losses.append(avg_val_loss)
-        
-        print(f"Epoch: {i}")
+
+        print(f"Epoch: {i + 1}")
         print(f"Training Loss: {avg_train_loss}")
+        print(f"Training Accuracy: {train_accuracy:.2%}")
         print(f"Validation Loss: {avg_val_loss}")
+        print(f"Validation Accuracy: {val_accuracy:.2%}")
 
     graph.line_graph(range(epoch), train_losses, val_losses, save_path="training+validation(lower learning rate and size).png")
+    true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
+    graph.plot_confusion_matrix(
+        true_labels,
+        predicted_labels,
+        save_path="validation-confusion-matrix.png",
+    )
 
 
 # validate ranged user input for int/float

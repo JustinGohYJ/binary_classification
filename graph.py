@@ -33,4 +33,41 @@ def line_graph(
     if save_path is not None:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.show()
+
+
+def plot_confusion_matrix(
+    true_labels,
+    predicted_labels,
+    class_names=("not pizza", "pizza"),
+    save_path=None,
+):
+    if len(true_labels) != len(predicted_labels):
+        raise ValueError("true_labels and predicted_labels must have equal lengths")
+
+    size = len(class_names)
+    matrix = [[0] * size for _ in range(size)]
+    for actual, predicted in zip(true_labels, predicted_labels):
+        matrix[actual][predicted] += 1
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    image = ax.imshow(matrix, cmap="Blues")
+    ax.set_xticks(range(size), class_names)
+    ax.set_yticks(range(size), class_names)
+    ax.set_xlabel("Predicted label")
+    ax.set_ylabel("True label")
+    ax.set_title("Validation confusion matrix")
+
+    threshold = max(max(row) for row in matrix) / 2
+    for row in range(size):
+        for column in range(size):
+            value = matrix[row][column]
+            color = "white" if value > threshold else "black"
+            ax.text(column, row, value, ha="center", va="center", color=color)
+
+    fig.colorbar(image, ax=ax, label="count")
+    fig.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.show()
+    return matrix
     
