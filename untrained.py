@@ -28,7 +28,7 @@ def main() -> None:
     train, val, test = data.build_split(samples, data_split)
     epoch = 30
     batch_size = 32
-    W, B = mlp.init_network(12288, 256, 100, 1)
+    W, B = mlp.init_network(12288, 100, 64, 1)
     optimizer = mlp.Momentum(W, B, beta=0.9)
     
     train_losses = []
@@ -67,14 +67,14 @@ def main() -> None:
     W, B = best_W, best_B
     print(f"Best epoch: {best_epoch} (validation loss: {best_val_loss:.3f})")
 
-    graph.line_graph(range(epoch), train_losses, val_losses, save_path="bestweigth33.png")
+    graph.line_graph(range(epoch), train_losses, val_losses, save_path="lin-bestweigth50shrinked.png")
 
     # confusion matrix on best weights
     true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
     graph.plot_confusion_matrix(
         true_labels,
         predicted_labels,
-        save_path="bestweigh33.png",
+        save_path="conf-bestweigh50shrinked.png",
     )
 
 

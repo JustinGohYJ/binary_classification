@@ -154,6 +154,7 @@ def back_propagation(x, w, b, z, a, y):
     return d_w, d_b
 
 
+# not used
 def update_param(dw, db, w, b, learning_rate):
     for i in range(len(w)):
         w[i] -= learning_rate * dw[i]
@@ -168,6 +169,7 @@ class Momentum:
         self.m_w = [np.zeros_like(wi) for wi in w]
         self.m_b = [np.zeros_like(bi) for bi in b]
 
+    # heavy ball alg
     def update(self, dw, db, w, b, learning_rate):
         for i in range(len(w)):
             self.m_w[i] = self.beta * self.m_w[i] + dw[i]
@@ -179,20 +181,21 @@ class Momentum:
         return w, b
 
 
+# training loss calculated after
 def full_pass(train, w, b, learning_rate, batch_size, optimizer):
     
     random.shuffle(train)
 
     train_amt = len(train)
-    total_loss = 0.0
     total_batches = math.ceil(train_amt / batch_size)
 
+    # enumerate just for print
     for batch_number, start in enumerate(range(0, train_amt, batch_size)):
         batch = train[start:(start + batch_size)]
-        w, b, batch_loss = run_mini_batch(
+        
+        w, b = run_mini_batch(
             batch, w, b, learning_rate, optimizer
         )
-        total_loss += batch_loss
 
         print(
             f"\rMini-batch {batch_number + 1}/{total_batches}",
@@ -200,7 +203,6 @@ def full_pass(train, w, b, learning_rate, batch_size, optimizer):
             flush=True,
         )
     print()
-    
     return w, b
 
 
@@ -221,26 +223,29 @@ def run_mini_batch(batch, w, b, learning_rate, optimizer):
             batch_dw[layer] += dw[layer]
             batch_db[layer] += db[layer]
 
-    # last batch can be smaller, use len()
+    # last batch can be smaller, used len()
     for layer in range(mlp_size):
         batch_dw[layer] /= len(batch)
         batch_db[layer] /= len(batch)
 
     w, b = optimizer.update(batch_dw, batch_db, w, b, learning_rate)
-    return w, b, batch_loss
+    return w, b
 
 
+# evaluate average loss and accuracy
 def evaluate(samples, w, b):
     amt = len(samples)
     total_loss = 0.0
+    
     labels = []
     predictions = []
 
     for path, label in samples:
         x = img_input(path)
-        _, a = forward_propagation(x, w, b)
+        z, a = forward_propagation(x, w, b)
         prediction = a[-1].item(0, 0)
         total_loss += obtain_loss(label, a[-1])
+        
         labels.append(label)
         predictions.append(prediction)
 
@@ -249,24 +254,28 @@ def evaluate(samples, w, b):
     return avg_loss, accuracy
 
 
+# just check bool with the label 
+# 0 is non pizza, 1 is pizza
 def obtain_accuracy(labels, predictions):
     correct = 0
 
     for label, prediction in zip(labels, predictions):
-        guess = int(prediction >= 0.35)
-        correct += guess == label
+        guess = int(prediction >= 0.5)
+        correct += (guess == label)
 
     return correct / len(labels)
 
 
+# for confusion matrix
+# need correct answer and what it predicted
 def obtain_predictions(samples, w, b):
     true_labels = []
     predicted_labels = []
 
     for path, label in samples:
         x = img_input(path)
-        _, a = forward_propagation(x, w, b)
-        prediction = int(a[-1].item(0, 0) >= 0.35)
+        z, a = forward_propagation(x, w, b)
+        prediction = int(a[-1].item(0, 0) >= 0.5)
         true_labels.append(label)
         predicted_labels.append(prediction)
 
