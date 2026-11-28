@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def line_graph(
+def duo_line_graph(
     x_range,
     train_losses,
     val_losses,
@@ -10,9 +10,6 @@ def line_graph(
     save_path=None,
 ):
     x_vals = list(x_range)
-    if len(x_vals) != len(train_losses) or len(x_vals) != len(val_losses):
-        raise ValueError("x_range, train_losses, and val_losses must have equal lengths")
-
     plt.figure(figsize=(8, 4.5))
     plt.plot(
         x_vals, train_losses, color="tab:blue", linewidth=2,

@@ -67,7 +67,7 @@ def main() -> None:
     W, B = best_W, best_B
     print(f"Best epoch: {best_epoch} (validation loss: {best_val_loss:.3f})")
 
-    graph.line_graph(range(epoch), train_losses, val_losses, save_path="lin-bestweigth50shrinked.png")
+    graph.duo_line_graph(range(epoch), train_losses, val_losses, save_path="lin-bestweigth50shrinked.png")
 
     # confusion matrix on best weights
     true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
