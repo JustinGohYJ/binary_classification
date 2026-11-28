@@ -74,9 +74,13 @@ def init_network(*layers):
 
 
 # applies relu to all except last
-def forward_propagation(x, w, b):
+# dropout of 0 during evaluation
+def forward_propagation(x, w, b, dropout = 0.0):
     Z = []
     A = []
+    masks = []
+
+    keep_prob = 1.0 - dropout
 
     for i in range(len(w)): 
         if i == 0: 
@@ -85,15 +89,22 @@ def forward_propagation(x, w, b):
             prev_a = A[-1]
         
         z = np.dot(prev_a, w[i]) + b[i]
+
         if i == len(w) - 1:
-            a = sigmoid(z) 
+            a = sigmoid(z)
+            dropout_mask = None
+            # keep consistent index for masks
         else:
             a = relu(z)
+            dropout_mask = np.random.rand(np.shape(a)) < keep_prob
+            a = np.multiply(a, dropout_mask)
+            a /= keep_prob
         
         Z.append(z)
         A.append(a)
+        masks.append(dropout_mask)
 
-    return Z, A
+    return Z, A, masks
 
 
 # binary cross entropy
@@ -113,10 +124,12 @@ def obtain_loss(label, pred) -> float:
 # zi = wi * ai-1 + bi
 # ai = sig(zi)
 # y = label
-def back_propagation(x, w, b, z, a, y):
+def back_propagation(x, w, b, z, a, y, masks, dropout):
     d_z = []
     d_w = []
     d_b = []
+
+    keep_prob = 1.0 - dropout
 
     # last layer delta
     d_last_z = a[-1] - y
@@ -130,7 +143,8 @@ def back_propagation(x, w, b, z, a, y):
     # hidden layer delta, not including the first
     for i in range (-2, len(w) * -1, -1):
         d_i_a = np.dot(d_z[0], w[(i + 1)].T)
-        d_i_z = np.multiply(d_i_a, delta_relu(z[i]))
+        d_i_z = np.multiply(d_i_a, masks[i]) / keep_prob
+        d_i_z = np.multiply(d_i_z, delta_relu(z[i]))
 
         d_i_w = np.dot(a[i-1].T, d_i_z)
         d_i_b = d_i_z
@@ -141,7 +155,8 @@ def back_propagation(x, w, b, z, a, y):
 
     # first layer
     d_first_a = np.dot(d_z[0], w[1].T)
-    d_first_z = np.multiply(d_first_a, delta_relu(z[0]))
+    d_first_z = np.multiply(d_first_a, masks[0]) / keep_prob
+    d_first_z = np.multiply(d_first_z, delta_relu(z[0]))
 
     #reshape input from 1d array to 2d array column vector 
     x = x.reshape(-1, 1)
@@ -182,7 +197,7 @@ class Momentum:
 
 
 # training loss calculated after
-def full_pass(train, w, b, learning_rate, batch_size, optimizer):
+def full_pass(train, w, b, learning_rate, batch_size, optimizer, dropout = 0.0):
     
     random.shuffle(train)
 
@@ -194,7 +209,7 @@ def full_pass(train, w, b, learning_rate, batch_size, optimizer):
         batch = train[start:(start + batch_size)]
         
         w, b = run_mini_batch(
-            batch, w, b, learning_rate, optimizer
+            batch, w, b, learning_rate, optimizer, dropout
         )
 
         print(
@@ -206,7 +221,7 @@ def full_pass(train, w, b, learning_rate, batch_size, optimizer):
     return w, b
 
 
-def run_mini_batch(batch, w, b, learning_rate, optimizer):
+def run_mini_batch(batch, w, b, learning_rate, optimizer, dropout):
     mlp_size = len(w)
     batch_dw = [np.zeros_like(layer) for layer in w]
     batch_db = [np.zeros_like(layer) for layer in b]
@@ -215,9 +230,9 @@ def run_mini_batch(batch, w, b, learning_rate, optimizer):
     # for each image
     for path, label in batch:
         x = img_input(path)
-        z, a = forward_propagation(x, w, b)
+        z, a, masks = forward_propagation(x, w, b, dropout=dropout)
         batch_loss += obtain_loss(label, a[-1])
-        dw, db = back_propagation(x, w, b, z, a, label)
+        dw, db = back_propagation(x, w, b, z, a, label, masks, dropout)
 
         for layer in range(mlp_size):
             batch_dw[layer] += dw[layer]

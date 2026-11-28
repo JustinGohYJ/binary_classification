@@ -26,9 +26,9 @@ def main() -> None:
     
     samples = data.build_samples([not_pizza_path, pizza_path])
     train, val, test = data.build_split(samples, data_split)
-    epoch = 30
+    epoch = 50
     batch_size = 32
-    W, B = mlp.init_network(12288, 100, 64, 1)
+    W, B = mlp.init_network(12288, 200, 100, 1)
     optimizer = mlp.Momentum(W, B, beta=0.9)
     
     train_losses = []
@@ -40,7 +40,7 @@ def main() -> None:
     for i in range(epoch):
         # train
         W, B = mlp.full_pass(
-            train, W, B, 0.001, batch_size, optimizer
+            train, W, B, 0.001, batch_size, optimizer, drouput=0.2
         )
         # to be fair we judge it after updates
         avg_train_loss, train_accuracy = mlp.evaluate(train, W, B)
