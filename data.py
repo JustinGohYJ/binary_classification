@@ -15,7 +15,6 @@ def save_usable_dataset(img_size) -> tuple[Path, Path]:
     return image_path_np, image_path_p, non_pizza_amt, pizza_amt
 
 
-# create path variables
 def create_paths(path) -> tuple[Path, Path, Path, Path]:
     print("Handling path creation", end='\r')
 
@@ -45,7 +44,6 @@ def resize_img_dir(path_np, image_path_np, path_p, image_path_p, img_size) -> tu
     return non_pizza_total, pizza_total
 
 
-# resize all image from cur_path and saved it to new_path
 def resize_img(cur_path, new_path, size) -> int:
     i = 0
     for item in cur_path.iterdir():
@@ -66,14 +64,12 @@ def resize_img(cur_path, new_path, size) -> int:
     return i
 
 
-# validate file
 def valid_file(item) -> bool:
     if not item.is_file():
         return False
     return True
 
 
-# validate image
 def valid_image(item) -> bool:
     try: 
         with Image.open(item) as img:
@@ -94,6 +90,7 @@ def build_samples(image_dirs):
 
     random.shuffle(samples)
     return samples
+
 
 # split the data into train, val, test, remainder into trian
 def build_split(samples, data_split):

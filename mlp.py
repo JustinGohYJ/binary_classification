@@ -264,19 +264,3 @@ def obtain_accuracy(labels, predictions):
         correct += (guess == label)
 
     return correct / len(labels)
-
-
-# for confusion matrix
-# need correct answer and what it predicted
-def obtain_predictions(samples, w, b):
-    true_labels = []
-    predicted_labels = []
-
-    for path, label in samples:
-        x = img_input(path)
-        z, a = forward_propagation(x, w, b)
-        prediction = int(a[-1].item(0, 0) >= 0.5)
-        true_labels.append(label)
-        predicted_labels.append(prediction)
-
-    return true_labels, predicted_labels

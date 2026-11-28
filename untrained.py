@@ -21,6 +21,7 @@ def main() -> None:
     # learning_rate = validate_user_num(float, 0.0001, 1, "Choose the learning rate")
     data_split = validate_user_datasplit()
 
+    # temp hard code
     not_pizza_path = Path("not_pizza_resized")
     pizza_path = Path("pizza_resized")
     
@@ -33,30 +34,18 @@ def main() -> None:
     
     train_losses = []
     val_losses = []
-    best_val_loss = float("inf")
-    best_epoch = 0
-    best_W = None
-    best_B = None
     for i in range(epoch):
         # train
         W, B = mlp.full_pass(
             train, W, B, 0.001, batch_size, optimizer
         )
-        # to be fair we judge it after updates
+        # judge it after updates
         avg_train_loss, train_accuracy = mlp.evaluate(train, W, B)
         train_losses.append(avg_train_loss)
 
-        # val
+        # val loss
         avg_val_loss, val_accuracy = mlp.evaluate(val, W, B)
         val_losses.append(avg_val_loss)
-
-        # save best parameters
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            best_epoch = i + 1
-            best_W = [layer.copy() for layer in W]
-            best_B = [layer.copy() for layer in B]
-
 
         print(f"Epoch: {i + 1}")
         print(f"Training Loss: {avg_train_loss:.3f}")
@@ -64,18 +53,11 @@ def main() -> None:
         print(f"Validation Loss: {avg_val_loss:.3f}")
         print(f"Validation Accuracy: {val_accuracy:.2%}")
 
-    W, B = best_W, best_B
-    print(f"Best epoch: {best_epoch} (validation loss: {best_val_loss:.3f})")
+    avg_test_loss, test_accuracy = mlp.evaluate(test, W, B)
+    print(f"Final Test Loss: {avg_test_loss:.3f}")
+    print(f"Final Test Accuracy: {test_accuracy:.2%}")
 
     graph.duo_line_graph(range(epoch), train_losses, val_losses, save_path="lin-bestweigth50shrinked.png")
-
-    # confusion matrix on best weights
-    true_labels, predicted_labels = mlp.obtain_predictions(test, W, B)
-    graph.plot_confusion_matrix(
-        true_labels,
-        predicted_labels,
-        save_path="conf-bestweigh50shrinked.png",
-    )
 
 
 # validate ranged user input for int/float
